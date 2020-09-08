@@ -53,13 +53,11 @@ public class HomeController {
 	@Autowired(required=false)
 	com.jpa.services.EmployeeService employeeServices;
 
-	static ModelAndView modelViewObj;
 
 	@RequestMapping("/welcome")
-	public ModelAndView getGreetingsMessage() {
+	public String getGreetingsMessage() {
 		System.out.println("Inside Greetings Message");
-		modelViewObj = new ModelAndView("welcome","messageObj","Good Morning!!");
-		return  modelViewObj;
+		return  "welcome";
 	}
 	
 	@GetMapping("/list-beans")
