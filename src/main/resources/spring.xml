@@ -1,0 +1,282 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+	<aop:aspectj-autoproxy />
+	<aop:config proxy-target-class="true" />
+	<context:annotation-config />
+	<tx:annotation-driven />
+	<tx:jta-transaction-manager />
+
+    
+	<context:component-scan
+		base-package="com.spring.core, com.spring.model,com.jta,com.jpa" />
+
+
+	<!-- Only 1 id, but Many names cane be there;Also any special chars can 
+		be there in name. else name & id same -->
+	<bean id="pointA" name="myFoo,/kingbean,notBar"
+		class="com.spring.model.Point">
+		<property name="x" value="0" />
+		<property name="y" value="0" />
+	</bean>
+
+
+	<bean id="point3" class="com.spring.model.Point">
+		<property name="x" value="0" />
+		<property name="y" value="1" />
+	</bean>
+
+	<bean id="point3_child" class="com.spring.model.Point"
+		parent="point3" scope="session">
+		<property name="y" value="11" />
+	</bean>
+
+	<bean name="circle" class="com.spring.model.Circle"
+		lazy-init="true">
+		<property name="name" value="Circle Name" />
+	</bean>
+
+	<bean name="shapeService" class="com.spring.model.ShapeService"
+		autowire="byName" />
+
+	<bean name="loggingAspect" class="com.spring.model.LoggingAspect" />
+
+	<bean id="ds"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName"
+			value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://localhost:3306/companyA" />
+		<property name="username" value="root" />
+		<property name="password" value="root" />
+	</bean>
+
+	<alias name="ds" alias="dataSource" />
+
+	<bean id="jdbcTemplate"
+		class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="ds" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="configLocation"
+			value="classpath:hibernate.cfg.xml" />
+	</bean>
+
+	<bean id="sessionFactory2"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="configLocation"
+			value="classpath:hibernate2.cfg.xml" />
+	</bean>
+
+	<bean id="dataSourceA"
+		class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init"
+		destroy-method="close" primary="true">
+		<property name="uniqueResourceName">
+			<value>DataSourceA</value>
+		</property>
+		<property name="xaDataSourceClassName">
+			<value>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</value>
+		</property>
+		<property name="xaProperties">
+			<props>
+				<prop key="databaseName">companyA</prop>
+				<prop key="serverName">localhost</prop>
+				<prop key="port">3306</prop>
+				<prop key="user">root</prop>
+				<prop key="password">root</prop>
+				<prop key="url">jdbc:mysql://localhost:3306/companyA</prop>
+			</props>
+		</property>
+		<property name="minPoolSize">
+			<value>1</value>
+		</property>
+	</bean>
+
+	<bean id="dataSourceB"
+		class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init"
+		destroy-method="close">
+		<property name="uniqueResourceName">
+			<value>DataSourceB</value>
+		</property>
+		<property name="xaDataSourceClassName">
+			<value>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</value>
+		</property>
+		<property name="xaProperties">
+			<props>
+				<prop key="databaseName">companyB</prop>
+				<prop key="serverName">localhost</prop>
+				<prop key="port">3306</prop>
+				<prop key="user">root</prop>
+				<prop key="password">root</prop>
+				<prop key="url">jdbc:mysql://localhost:3306/companyB</prop>
+			</props>
+		</property>
+		<property name="minPoolSize">
+			<value>1</value>
+		</property>
+	</bean>
+
+	<bean id="entityManagerFactoryA"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" primary="true">
+		<property name="persistenceXmlLocation">
+			<value>classpath*:persistence.xml</value>
+		</property>
+		<property name="persistenceUnitName" value="PersistenceUnitA" />
+		<property name="dataSource" ref="dataSourceA" />
+		<property name="jpaVendorAdapter">
+			<bean
+				class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="true" />
+				<property name="databasePlatform"
+					value="org.hibernate.dialect.MySQL5InnoDBDialect" />
+			</bean>
+		</property>
+	</bean>
+
+	<!-- To Handle -->
+	<!-- <property name="jpaProperties"> <props> <prop key="hibernate.hbm2ddl.auto">create-drop</prop> 
+		<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop> 
+		</props> </property> -->
+
+	<bean id="entityManagerFactoryB"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="persistenceXmlLocation">
+			<value>classpath*:persistence.xml</value>
+		</property>
+		<property name="persistenceUnitName" value="PersistenceUnitB" />
+		<property name="dataSource" ref="dataSourceB" />
+		<property name="jpaVendorAdapter">
+			<bean
+				class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="true" />
+				<property name="databasePlatform"
+					value="org.hibernate.dialect.MySQL5InnoDBDialect" />
+			</bean>
+		</property>
+	</bean>
+
+
+	<bean id="atomikosTransactionManager"
+		class="com.atomikos.icatch.jta.UserTransactionManager"
+		init-method="init" destroy-method="close">
+		<property name="forceShutdown" value="false" />
+	</bean>
+
+
+
+
+	<bean id="atomikosUserTransaction"
+		class="com.atomikos.icatch.jta.J2eeUserTransaction">
+<!-- 		<property name="transactionTimeout" value="300" />
+ -->	</bean>
+
+
+	<bean id="myEmf"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<!-- <property name="dataSource" ref="dataSource" /> -->
+		<property name="persistenceXmlLocation">
+			<value>classpath*:persistence.xml</value>
+		</property>
+		<property name="persistenceUnitName" value="Eclipselink_JPA" />
+
+		<property name="packagesToScan" value="com" />
+		<property name="jpaVendorAdapter">
+			<bean
+				class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+		</property>
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+			</props>
+		</property>
+	</bean>
+
+
+	<bean id="transactionManager1"
+		class="org.springframework.orm.jpa.JpaTransactionManager"
+		primary="true">
+		<property name="entityManagerFactory" ref="myEmf" />
+		<qualifier value="jpa"/>
+	</bean>
+
+
+	<bean id="transactionManager"
+		class="org.springframework.transaction.jta.JtaTransactionManager"
+		depends-on="atomikosTransactionManager,atomikosUserTransaction">
+		<property name="transactionManager"
+			ref="atomikosTransactionManager" />
+		<property name="userTransaction"
+			ref="atomikosUserTransaction" />
+		<property name="allowCustomIsolationLevels" value="true" />
+		<qualifier value="jta"/>
+		
+	</bean>
+
+
+
+
+	<bean id="persistenceExceptionTranslationPostProcessor"
+		class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+	<!-- base-package="com.spring.core, com.spring.model,com.jpa,com.jta" /> -->
+	<!-- autowire for PointA -->
+	<bean name="triangle" class="com.spring.model.Triangle"
+		autowire="byName" init-method="initT" destroy-method="destroyT">
+		<property name="name" value="Triangle Name" />
+		<property name="pointB" ref="point2" />
+		<property name="pointC" ref="point3" />
+	</bean>
+
+
+<bean id="empDetails1" class="com.spring.model.EmployeeDetails">
+	<constructor-arg value="10" type="int"></constructor-arg>
+	
+</bean>
+
+	<bean id="empDetails2" class="com.spring.model.EmployeeDetails">
+		<constructor-arg value="10"></constructor-arg>
+	</bean>
+
+
+	<bean id="empDetails3" class="com.spring.model.EmployeeDetails">
+		<constructor-arg value="Saurabh"></constructor-arg>
+	</bean>
+
+	<bean id="empDetails4" class="com.spring.model.EmployeeDetails">
+		<constructor-arg value="10" type="int"></constructor-arg>
+		<constructor-arg value="Saurabh1"></constructor-arg>
+	</bean>  
+
+	<bean id="empDetails44" class="com.spring.model.EmployeeDetails">
+		<constructor-arg value="10" index="1" type="int"></constructor-arg>
+		<constructor-arg value="Saurabh1" index="0"></constructor-arg>
+	</bean>  
+
+	
+<bean id="toyota" class="com.spring.model.Car">
+    <constructor-arg index="0" ref="engine"/>
+    <constructor-arg index="1" ref="transmission"/>
+</bean>
+
+	<bean id="engine" class="com.spring.model.Engine">
+		<property name="type" value="petrol" />
+		<property name="capacity" value="35" />
+	</bean>
+
+	<bean id="transmission" class="com.spring.model.Transmission">
+		<property name="transmissionType" value="4 Stroke" />
+	</bean>
+
+	
+
+</beans>
